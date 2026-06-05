@@ -57,7 +57,7 @@ const UserList = () => {
 
   return (
     <div>
-      <h2 style={styles.heading}>Good Morning, All Users</h2>
+      <h2 style={styles.heading}>Hello World</h2>
 
       {users.length === 0 ? (
         <div style={styles.emptyBox}>
