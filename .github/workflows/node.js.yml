@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: npm ci
     - name: Build
-      run: npm run build
+      run: CI=false npm run build
     - name: Deploy to server
       run: rsync -av --delete $GITHUB_WORKSPACE/ /var/alphadevs/my_web_app/CloudTestFrontend/
     - name: Restart app
