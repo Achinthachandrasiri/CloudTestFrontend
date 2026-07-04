@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: self-hosted
 
     strategy:
@@ -19,32 +19,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup Node
+      # 2. Setup Node.js
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: "npm"
 
-      # 3. Install dependencies
-      - name: Install dependencies
-        run: npm ci
-
-      # 4. Build project
-      - name: Build
-        run: npm run build
-
-      # 5. Deploy build folder only
-      - name: Deploy to server
+      # 3. Deploy FULL source code to server (SAFE VERSION)
+      - name: Deploy source to server
         run: |
-          rsync -av --delete build/ /var/alphadevs/my_web_app/CloudTestFrontend/
+          rsync -av --delete \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=.github \
+            $GITHUB_WORKSPACE/ /var/alphadevs/my_web_app/CloudTestFrontend/
 
-      # 6. Restart PM2 safely
+      # 4. Install dependencies on server
+      - name: Install dependencies
+        run: |
+          cd /var/alphadevs/my_web_app/CloudTestFrontend
+          npm install
+
+      # 5. Build React app on server
+      - name: Build app
+        run: |
+          cd /var/alphadevs/my_web_app/CloudTestFrontend
+          CI=false npm run build
+
+      # 6. Restart PM2 process
       - name: Restart app
         run: |
-          pm2 describe CloudTestFrontend > /dev/null
-          if [ $? -eq 0 ]; then
-            pm2 restart CloudTestFrontend
-          else
-            pm2 serve /var/alphadevs/my_web_app/CloudTestFrontend 3000 --name CloudTestFrontend --spa
-          fi
+          pm2 restart CloudTestFrontend || pm2 serve /var/alphadevs/my_web_app/CloudTestFrontend/build 3000 --name CloudTestFrontend --spa
