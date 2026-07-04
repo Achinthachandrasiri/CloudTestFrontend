@@ -92,7 +92,7 @@ const EditUser = () => {
 
   useEffect(() => {
     fetchUser();
-  }, [id]);
+  }, [id, fetchUser]);
 
   if (loading) {
     return <div style={styles.center}>⏳ Loading user data...</div>;
