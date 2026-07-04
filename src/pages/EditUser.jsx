@@ -17,7 +17,6 @@ const EditUser = () => {
   const [updating, setUpdating] = useState(false);
   const [serverError, setServerError] = useState(null);
 
-  // ✅ FIXED: stable function
   const fetchUser = useCallback(async () => {
     setLoading(true);
 
@@ -43,32 +42,6 @@ const EditUser = () => {
     fetchUser();
   }, [fetchUser]);
 
-  const validate = () => {
-    const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    } else if (formData.name.length < 3) {
-      newErrors.name = "Name must be at least 3 characters";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (
-      !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(formData.email)
-    ) {
-      newErrors.email = "Please enter a valid email";
-    }
-
-    if (!formData.age) {
-      newErrors.age = "Age is required";
-    } else if (formData.age < 1 || formData.age > 120) {
-      newErrors.age = "Age must be between 1 and 120";
-    }
-
-    return newErrors;
-  };
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
@@ -77,12 +50,6 @@ const EditUser = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
 
     try {
       setUpdating(true);
@@ -96,7 +63,7 @@ const EditUser = () => {
     } catch (error) {
       setServerError(
         error.response?.data?.message ||
-          "Cannot connect to server. Make sure backend is running."
+          "Cannot connect to server"
       );
     } finally {
       setUpdating(false);
@@ -104,71 +71,92 @@ const EditUser = () => {
   };
 
   if (loading) {
-    return <div style={styles.center}>⏳ Loading user data...</div>;
+    return <div style={styles.center}>Loading...</div>;
   }
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.heading}>✏️ Edit User</h2>
+        <h2>Edit User</h2>
 
         {serverError && (
-          <div style={styles.serverError}>
-            ❌ {serverError}
-            <button style={styles.retryBtn} onClick={fetchUser}>
-              Retry
-            </button>
+          <div style={styles.error}>
+            {serverError}
+            <button onClick={fetchUser}>Retry</button>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Name</label>
-            <input
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            {errors.name && <p style={styles.errorText}>{errors.name}</p>}
-          </div>
+        <input
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          style={styles.input}
+        />
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Email</label>
-            <input
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            {errors.email && <p style={styles.errorText}>{errors.email}</p>}
-          </div>
+        <input
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          style={styles.input}
+        />
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Age</label>
-            <input
-              name="age"
-              type="number"
-              value={formData.age}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            {errors.age && <p style={styles.errorText}>{errors.age}</p>}
-          </div>
+        <input
+          name="age"
+          value={formData.age}
+          onChange={handleChange}
+          style={styles.input}
+        />
 
-          <div style={styles.btnGroup}>
-            <Link to="/" style={styles.cancelBtn}>
-              Cancel
-            </Link>
+        <div style={styles.btnRow}>
+          <Link to="/" style={styles.cancel}>Cancel</Link>
 
-            <button type="submit" style={styles.submitBtn} disabled={updating}>
-              {updating ? "Updating..." : "Update User"}
-            </button>
-          </div>
-        </form>
+          <button onClick={handleSubmit} style={styles.save}>
+            {updating ? "Updating..." : "Update"}
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
 export default EditUser;
+
+/* ✅ STYLES (THIS WAS MISSING BEFORE) */
+const styles = {
+  container: { display: "flex", justifyContent: "center", marginTop: 30 },
+  card: {
+    width: 400,
+    padding: 20,
+    background: "#fff",
+    borderRadius: 10,
+    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+  },
+  input: {
+    width: "100%",
+    padding: 10,
+    margin: "10px 0",
+  },
+  btnRow: {
+    display: "flex",
+    justifyContent: "space-between",
+  },
+  cancel: {
+    padding: 10,
+    background: "#ccc",
+    textDecoration: "none",
+  },
+  save: {
+    padding: 10,
+    background: "orange",
+    border: "none",
+    color: "#fff",
+  },
+  error: {
+    background: "#ffe5e5",
+    padding: 10,
+    marginBottom: 10,
+  },
+  center: {
+    textAlign: "center",
+  },
+};

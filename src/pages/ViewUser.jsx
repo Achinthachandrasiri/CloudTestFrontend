@@ -10,7 +10,6 @@ const ViewUser = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ FIXED: stable function
   const fetchUser = useCallback(async () => {
     try {
       setLoading(true);
@@ -24,7 +23,7 @@ const ViewUser = () => {
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "Cannot connect to server. Make sure backend is running."
+          "Cannot connect to server"
       );
     } finally {
       setLoading(false);
@@ -36,65 +35,42 @@ const ViewUser = () => {
   }, [fetchUser]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Delete user?")) return;
 
     try {
       await axios.delete(
         `${process.env.REACT_APP_BASE_URL}/users/${id}`
       );
-
       navigate("/");
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to delete user");
+      alert("Failed to delete");
     }
   };
 
-  if (loading) {
-    return <div style={styles.center}>⏳ Loading user details...</div>;
-  }
+  if (loading) return <div style={styles.center}>Loading...</div>;
 
-  if (error) {
+  if (error)
     return (
-      <div style={styles.errorBox}>
-        ❌ {error}
-
-        <div style={styles.errorActions}>
-          <button style={styles.retryBtn} onClick={fetchUser}>
-            Retry
-          </button>
-
-          <Link to="/" style={styles.backBtn}>
-            ← Back to Users
-          </Link>
-        </div>
+      <div style={styles.error}>
+        {error}
+        <button onClick={fetchUser}>Retry</button>
       </div>
     );
-  }
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <div style={styles.header}>
-          <h2>👤 User Details</h2>
+        <h2>{user.name}</h2>
+        <p>{user.email}</p>
+        <p>{user.age}</p>
 
-          <Link to="/" style={styles.backBtn}>
-            ← Back
-          </Link>
-        </div>
-
-        <div style={styles.infoBox}>
-          <p><b>Name:</b> {user.name}</p>
-          <p><b>Email:</b> {user.email}</p>
-          <p><b>Age:</b> {user.age}</p>
-        </div>
-
-        <div style={styles.btnGroup}>
-          <Link to={`/edit/${user._id}`} style={styles.editBtn}>
-            ✏️ Edit
+        <div style={styles.btnRow}>
+          <Link to={`/edit/${user._id}`} style={styles.edit}>
+            Edit
           </Link>
 
-          <button onClick={handleDelete} style={styles.deleteBtn}>
-            🗑 Delete
+          <button onClick={handleDelete} style={styles.delete}>
+            Delete
           </button>
         </div>
       </div>
@@ -103,3 +79,38 @@ const ViewUser = () => {
 };
 
 export default ViewUser;
+
+/* ✅ STYLES FIXED */
+const styles = {
+  container: { display: "flex", justifyContent: "center", marginTop: 30 },
+  card: {
+    width: 400,
+    padding: 20,
+    background: "#fff",
+    borderRadius: 10,
+  },
+  btnRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  edit: {
+    background: "orange",
+    padding: 10,
+    color: "#fff",
+    textDecoration: "none",
+  },
+  delete: {
+    background: "red",
+    padding: 10,
+    color: "#fff",
+    border: "none",
+  },
+  error: {
+    padding: 20,
+    background: "#ffe5e5",
+  },
+  center: {
+    textAlign: "center",
+  },
+};
