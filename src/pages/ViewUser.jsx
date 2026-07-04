@@ -9,24 +9,30 @@ const ViewUser = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchUser = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/users/${id}`);
-      setUser(res.data.data);
-      setError(null);
-    } catch (error) {
-      if (error.response) {
-        setError(error.response.data.message);
-      } else if (error.request) {
-        setError("Cannot connect to server. Make sure backend is running.");
-      } else {
-        setError(error.message);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/users/${id}`
+        );
+        setUser(res.data.data);
+        setError(null);
+      } catch (error) {
+        if (error.response) {
+          setError(error.response.data.message);
+        } else if (error.request) {
+          setError("Cannot connect to server. Make sure backend is running.");
+        } else {
+          setError(error.message);
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchUser();
+  }, [id]);
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
@@ -37,10 +43,6 @@ const ViewUser = () => {
       alert(error.response?.data?.message || "Failed to delete user");
     }
   };
-
-  useEffect(() => {
-    fetchUser();
-  }, [id,fetchUser]);
 
   if (loading) {
     return <div style={styles.center}>⏳ Loading user details...</div>;

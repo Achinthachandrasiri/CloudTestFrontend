@@ -16,25 +16,30 @@ const EditUser = () => {
   const [serverError, setServerError] = useState(null);
 
   // Fetch existing user data
-  const fetchUser = async () => {
-    try {
+  useEffect(() => {
+    const fetchUser = async () => {
       setLoading(true);
-      const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/users/${id}`);
-      const { name, email, age } = res.data.data;
-      setFormData({ name, email, age });
-      setServerError(null);
-    } catch (error) {
-      if (error.response) {
-        setServerError(error.response.data.message);
-      } else if (error.request) {
-        setServerError("Cannot connect to server. Make sure backend is running.");
-      } else {
-        setServerError(error.message);
+
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/users/${id}`
+        );
+
+        const { name, email, age } = res.data.data;
+        setFormData({ name, email, age });
+        setServerError(null);
+      } catch (error) {
+        setServerError(
+          error.response?.data?.message ||
+          "Cannot connect to server. Make sure backend is running."
+        );
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchUser();
+  }, [id]);
 
   const validate = () => {
     const newErrors = {};
@@ -89,10 +94,6 @@ const EditUser = () => {
       setUpdating(false);
     }
   };
-
-  useEffect(() => {
-    fetchUser();
-  }, [id, fetchUser]);
 
   if (loading) {
     return <div style={styles.center}>⏳ Loading user data...</div>;
