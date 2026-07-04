@@ -1,28 +1,50 @@
 name: Frontend CI/CD
+
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
 jobs:
   build:
     runs-on: self-hosted
+
     strategy:
       matrix:
         node-version: [22.x]
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm ci
-    - name: Build
-      run: CI=false npm run build
-    - name: Deploy to server
-      run: rsync -av --delete $GITHUB_WORKSPACE/ /var/alphadevs/my_web_app/CloudTestFrontend/
-    - name: Restart app
-      run: pm2 restart CloudTestFrontend || pm2 serve /var/alphadevs/my_web_app/CloudTestFrontend/build 3000 --name CloudTestFrontend --spa
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Setup Node
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Build project
+      - name: Build
+        run: npm run build
+
+      # 5. Deploy build folder only
+      - name: Deploy to server
+        run: |
+          rsync -av --delete build/ /var/alphadevs/my_web_app/CloudTestFrontend/
+
+      # 6. Restart PM2 safely
+      - name: Restart app
+        run: |
+          pm2 describe CloudTestFrontend > /dev/null
+          if [ $? -eq 0 ]; then
+            pm2 restart CloudTestFrontend
+          else
+            pm2 serve /var/alphadevs/my_web_app/CloudTestFrontend 3000 --name CloudTestFrontend --spa
+          fi

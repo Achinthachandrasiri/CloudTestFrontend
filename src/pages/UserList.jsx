@@ -68,7 +68,7 @@ const UserList = () => {
     <div style={styles.wrapper}>
       <div style={styles.headerRow}>
         <div>
-          <h2 style={styles.heading}>Hello Mother Achintha BRO</h2>
+          <h2 style={styles.heading}>Hello Achintha</h2>
           <p style={styles.subheading}>{users.length} user{users.length !== 1 ? "s" : ""} registered</p>
         </div>
         <Link to="/create" style={styles.createBtn}>
