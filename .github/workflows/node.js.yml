@@ -26,7 +26,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
-      # 3. Deploy FULL source code to server (SAFE VERSION)
+      # 3. Deploy source to server
       - name: Deploy source to server
         run: |
           rsync -av --delete \
@@ -35,19 +35,29 @@ jobs:
             --exclude=.github \
             $GITHUB_WORKSPACE/ /var/alphadevs/my_web_app/CloudTestFrontend/
 
-      # 4. Install dependencies on server
+      # 4. Create .env file 
+      - name: Create environment file
+        run: |
+          cd /var/alphadevs/my_web_app/CloudTestFrontend
+
+          cat <<EOF > .env
+          REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL }}
+          EOF
+
+      # 5. Install dependencies
       - name: Install dependencies
         run: |
           cd /var/alphadevs/my_web_app/CloudTestFrontend
           npm install
 
-      # 5. Build React app on server
+      # 6. Build React app (env injected here)
       - name: Build app
         run: |
           cd /var/alphadevs/my_web_app/CloudTestFrontend
           CI=false npm run build
 
-      # 6. Restart PM2 process
+      # 7. Restart PM2 safely
       - name: Restart app
         run: |
-          pm2 restart CloudTestFrontend || pm2 serve /var/alphadevs/my_web_app/CloudTestFrontend/build 3000 --name CloudTestFrontend --spa
+          pm2 delete CloudTestFrontend || true
+          pm2 serve /var/alphadevs/my_web_app/CloudTestFrontend/build 3000 --name CloudTestFrontend --spa
